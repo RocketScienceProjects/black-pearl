@@ -1,19 +1,21 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>org.rocketscience</groupId>
-  <artifactId>simpleWebapp</artifactId>
-  <packaging>war</packaging>
-  <version>1.0-SNAPSHOT</version>
-  <name>blackPearl Maven Webapp</name>
-  <url>http://maven.apache.org</url>
-  <properties>
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.rocketscience</groupId>
+	<artifactId>simpleWebapp</artifactId>
+	<packaging>war</packaging>
+	<version>1.0-SNAPSHOT</version>
+	<name>blackPearl Maven Webapp</name>
+	<url>http://maven.apache.org</url>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<jdk.version>1.7</jdk.version>
 		<spring.version>4.1.1.RELEASE</spring.version>
 		<jstl.version>1.2</jstl.version>
 		<junit.version>4.11</junit.version>
 		<logback.version>1.0.13</logback.version>
 		<jcl-over-slf4j.version>1.7.5</jcl-over-slf4j.version>
+		<plugin.maven.source.version>2.3</plugin.maven.source.version>
 	</properties>
 
 	<dependencies>
@@ -70,46 +72,103 @@
 		</dependency>
 
 	</dependencies>
-  
-  <build>
-    <finalName>whitePearl</finalName>
-    <plugins>
-		    <!-- Eclipse project -->
-		  <plugin>
-			<groupId>org.apache.maven.plugins</groupId>
-			<artifactId>maven-eclipse-plugin</artifactId>
-			<version>2.9</version>
-			<configuration>
-			        <!-- Always download and attach dependencies source code -->
-				<downloadSources>true</downloadSources>
-				<downloadJavadocs>false</downloadJavadocs>
-				<!-- Avoid type mvn eclipse:eclipse -Dwtpversion=2.0 -->
-				<wtpversion>2.0</wtpversion>
-			</configuration>
-		  </plugin>
-			
-		  <!-- Set JDK Compiler Level -->
-		  <plugin>
-			<groupId>org.apache.maven.plugins</groupId>
-			<artifactId>maven-compiler-plugin</artifactId>
-			<version>2.3.2</version>
-			<configuration>
-				<source>${jdk.version}</source>
-				<target>${jdk.version}</target>
-			</configuration>
-		  </plugin>
 
-		  <!-- For Maven Tomcat Plugin -->
-		  <plugin>
-			<groupId>org.apache.tomcat.maven</groupId>
-			<artifactId>tomcat7-maven-plugin</artifactId>
-			<version>2.2</version>
-			<configuration>
-				<path>/blackPearl</path>
-			</configuration>
-		  </plugin>
+	<build>
+		<finalName>blackPearl</finalName>
+		<plugins>
+			<!-- Eclipse project -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-eclipse-plugin</artifactId>
+				<version>2.9</version>
+				<configuration>
+					<!-- Always download and attach dependencies source code -->
+					<downloadSources>true</downloadSources>
+					<downloadJavadocs>false</downloadJavadocs>
+					<!-- Avoid type mvn eclipse:eclipse -Dwtpversion=2.0 -->
+					<wtpversion>2.0</wtpversion>
+				</configuration>
+			</plugin>
 
+			<!-- Set JDK Compiler Level -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.2</version>
+				<configuration>
+					<source>${jdk.version}</source>
+					<target>${jdk.version}</target>
+				</configuration>
+			</plugin>
+
+			<!-- For Maven Tomcat Plugin -->
+			<plugin>
+				<groupId>org.apache.tomcat.maven</groupId>
+				<artifactId>tomcat7-maven-plugin</artifactId>
+				<version>2.2</version>
+				<configuration>
+					<path>/blackPearl</path>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>2.4</version>
+			</plugin>
+			<!-- <plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-source-plugin</artifactId> 
+				<version>${plugin.maven.source.version}</version> <executions> <execution> 
+				<id>attach-sources</id> <goals> <goal>jar-no-fork</goal> <goal>test-jar-no-fork</goal> 
+				</goals> </execution> </executions> </plugin> -->
 		</plugins>
-    
-  </build>
+
+	</build>
+	<pluginRepositories>
+		<pluginRepository>
+			<id>rocketscience-releases</id>
+			<name>Local nexus server plugin</name>
+			<url>http://ec2-54-201-191-217.us-west-2.compute.amazonaws.com:8081/nexus/content/groups/public</url>
+			<layout>default</layout>
+		</pluginRepository>
+		<pluginRepository>
+			<id>rocketscience-snapshots</id>
+			<name>Internal Nexus snapshot Server</name>
+			<url>http://ec2-54-201-191-217.us-west-2.compute.amazonaws.com:8081/nexus/content/repositories/snapshots</url>
+			<layout>default</layout>
+		</pluginRepository>
+	</pluginRepositories>
+	<distributionManagement>
+		<snapshotRepository>
+			<id>rocketscience-snapshots</id>
+			<url>http://ec2-54-201-191-217.us-west-2.compute.amazonaws.com:8081/nexus/content/repositories/snapshots</url>
+		</snapshotRepository>
+		<repository>
+			<id>rocketscience-releases</id>
+			<url>http://ec2-54-201-191-217.us-west-2.compute.amazonaws.com:8081/nexus/content/repositories/releases</url>
+		</repository>
+	</distributionManagement>
+	<repositories>
+		<repository>
+			<id>rocketscience-nexus</id>
+			<name>Internal Nexus Server</name>
+			<url>http://ec2-54-201-191-217.us-west-2.compute.amazonaws.com:8081/nexus/content/groups/public</url>
+		</repository>
+		<repository>
+			<id>rocketscience-snapshots</id>
+			<name>Internal 
+		Nexus snapshot Server</name>
+			<url>http://ec2-54-201-191-217.us-west-2.compute.amazonaws.com:8081/nexus/content/repositories/snapshots</url>
+		</repository>
+		<repository>
+			<id>rocketscience-releases</id>
+			<name>Internal 
+		Nexus Releases Server</name>
+			<url>http://ec2-54-201-191-217.us-west-2.compute.amazonaws.com:8081/nexus/content/repositories/releases</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
 </project>
