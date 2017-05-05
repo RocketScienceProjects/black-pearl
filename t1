@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<udm.DeploymentPackage version="$GIT_TAG_NAME.$BUILD_NUMBER" application="Informatica/informaticaApp">
+  <deployables>
+    <powercenter.PowercenterXml name="/wkf_s_m_STG_WNL_TRANSACTIONASSIGN.XML" file="ELC-Informatica/DataIntegration/Workflow/wkf_s_m_STG_WNL_TRANSACTIONASSIGN.XML">
+      <scanPlaceholders>true</scanPlaceholders>
+      <sourceRepository>TCAnalyticsDEV</sourceRepository>
+      <folderNameMap>
+        <entry key="AIG_ELC_COMMISSION_WNL_W3">{{AIG_ELC_COMMISSION_WNL_W3}}</entry>
+        <entry key="REUSUABLE_COMPONENTS">{{REUSUABLE_COMPONENTS}}</entry>
+        <entry key="AIG_ELC_W3_SHARED">{{AIG_ELC_W3_SHARED}}</entry>
+      </folderNameMap>
+      <objectNames>
+        <value>wkf_s_m_STG_WNL_TRANSACTIONASSIGN.XML</value>
+      </objectNames>
+      <objectTypes>
+        <value>workflow</value>
+      </objectTypes>
+    </powercenter.PowercenterXml>
+    <powercenter.PowercenterXml name="/wkf_MASTER_OASYS_TRANSACTION_INBOUND.XML" file="ELC-Informatica/DataIntegration/Workflow/wkf_MASTER_OASYS_TRANSACTION_INBOUND.XML">
+      <scanPlaceholders>true</scanPlaceholders>
+      <sourceRepository>TCAnalyticsDEV</sourceRepository>
+      <folderNameMap>
+        <entry key="AIG_ELC_COMMISSION_WNL_W3">{{AIG_ELC_COMMISSION_WNL_W3}}</entry>
+      </folderNameMap>
+      <objectNames>
+        <value>wkf_MASTER_OASYS_TRANSACTION_INBOUND.XML</value>
+      </objectNames>
+      <objectTypes>
+        <value>workflow</value>
+      </objectTypes>
+    </powercenter.PowercenterXml>
+    <powercenter.PowercenterXml name="/wkf_s_m_OASYS_CYCLE_BALANCE_REPORT.XML" file="ELC-Informatica/DataIntegration/Workflow/wkf_s_m_OASYS_CYCLE_BALANCE_REPORT.XML">
+      <scanPlaceholders>true</scanPlaceholders>
+      <sourceRepository>TCAnalyticsDEV</sourceRepository>
+      <folderNameMap>
+        <entry key="AIG_ELC_COMMISSION_WNL_W3">{{AIG_ELC_COMMISSION_WNL_W3}}</entry>
+        <entry key="REUSUABLE_COMPONENTS">{{REUSUABLE_COMPONENTS}}</entry>
+        <entry key="AIG_ELC_W3_SHARED">{{AIG_ELC_W3_SHARED}}</entry>
+      </folderNameMap>
+      <objectNames>
+        <value>wkf_s_m_OASYS_CYCLE_BALANCE_REPORT.XML</value>
+      </objectNames>
+      <objectTypes>
+        <value>workflow</value>
+      </objectTypes>
+    </powercenter.PowercenterXml>
+    <powercenter.PowercenterParamFile name="PI_DTCC.param" file="ELC-Informatica/DataIntegration/ParameterFile/PI_DTCC.param">
+      <scanPlaceholders>true</scanPlaceholders>
+      <functionality>ParamFiles/PI_Outbound</functionality>
+      <targetFile>PI_DTCC.param</targetFile>
+      <preserveExistingFiles>true</preserveExistingFiles>
+    </powercenter.PowercenterParamFile>
+    <powercenter.PowercenterMiscFile name="/example.sh" file="ELC-Informatica/DataIntegration/Scripts/example.sh">
+      <scanPlaceholders>true</scanPlaceholders>
+      <textFileNamesRegex>.+\.(sh | ksh | txt | sql | ctl | properties | config | pl | env | dat)</textFileNamesRegex>
+      <functionality>Scripts</functionality>
+      <targetFile>example.sh</targetFile>
+      <filePermissions>774</filePermissions>
+      <preserveExistingFiles>true</preserveExistingFiles>
+    </powercenter.PowercenterMiscFile>
+  </deployables>
+  <dependencyResolution>LATEST</dependencyResolution>
+  <undeployDependencies>false</undeployDependencies>
+</udm.DeploymentPackage>
