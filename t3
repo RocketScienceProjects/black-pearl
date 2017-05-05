@@ -1,0 +1,185 @@
+buildscript {
+	ext {
+		springBootVersion = '1.5.2.RELEASE'
+		springfoxVersion = '2.6.1'
+	}
+
+	repositories {
+		maven { url 'http://tlgsasc2tm0075.r1-core.r1.corpname.net:8081/artifactory/java-libs-prod' }
+//		maven { url 'http://artifactory.devops.corpname.net:8081/artifactory/java-libs-dev' }
+	}
+
+	dependencies {
+		classpath "org.springframework.boot:spring-boot-gradle-plugin:$springBootVersion"
+		classpath "gradle.plugin.com.gorylenko.gradle-git-properties:gradle-git-properties:1.4.17"
+		classpath 'org.cloudfoundry:cf-gradle-plugin:1.1.3'
+		classpath 'com.corpname.commercial.gradle:swagger-documentation-plugin:1.+'
+		classpath 'com.corpname.gradle:corpname-gradle:1.+'
+	}
+	
+	configurations.classpath {
+		resolutionStrategy.cacheDynamicVersionsFor 5, 'minutes'
+	}
+}
+
+group = 'com.corpname.commercial'
+
+apply plugin: 'com.corpname.commercial.gradle.swagger-documentation'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'com.corpname.groovy'
+apply plugin: 'com.corpname.war'
+apply plugin: "com.gorylenko.gradle-git-properties"
+apply plugin: 'cloudfoundry'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+springBoot {
+	buildInfo()
+}
+
+cloudfoundry {
+	target = 'https://api.system.nprd-pcf.corpname.net'
+	organization = '1161-0000-4999-Commercial'
+	space = 'DEV'
+	file = war.archivePath
+	memory = 1024
+	instances = 1
+	services {
+		'mysql' {
+			bind = true
+		}
+		'service-registry' {
+			bind = true
+		}
+		'circuit-breaker-dashboard' {
+			bind = true
+		}
+		'rabbit' {
+			bind = true
+		}
+		'config-server' {
+			bind = true
+		}
+	}
+}
+
+cfPush.dependsOn war
+
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.cloud:spring-cloud-dependencies:Camden.SR5"
+		mavenBom "io.pivotal.spring.cloud:spring-cloud-services-dependencies:1.3.1.RELEASE"
+	}
+}
+
+dependencies {
+	compile 'com.corpname.commercial.common:service-spring-boot-starter:1.0.+'
+	compile 'org.springframework.boot:spring-boot-starter-actuator'
+	compile 'org.springframework.boot:spring-boot-starter-web'
+	compile 'org.springframework.boot:spring-boot-starter-data-jpa'
+	compile 'org.springframework.boot:spring-boot-starter-cache'
+	compile 'org.springframework.boot:spring-boot-starter-hateoas'
+	compile 'org.springframework.boot:spring-boot-starter-security'
+	compile "io.springfox:springfox-swagger2:$springfoxVersion"
+	compile "io.springfox:springfox-swagger-ui:$springfoxVersion"
+	compile 'org.apache.commons:commons-collections4:4.1'
+	compile 'net.sf.dozer:dozer-spring:5.5.1'
+	compile 'net.sf.dozer:dozer:5.5.1'
+	compile 'org.springframework:spring-expression'
+	compile 'io.pivotal.spring.cloud:spring-cloud-services-starter-service-registry'
+	compile 'io.pivotal.spring.cloud:spring-cloud-services-starter-circuit-breaker'
+	compile 'io.pivotal.spring.cloud:spring-cloud-services-starter-config-client'
+	javaClientCompile "org.springframework.boot:spring-boot-starter-hateoas:$springBootVersion"
+	javaClientCompile 'org.apache.commons:commons-lang3:3.5'
+	javaClientCompile "com.fasterxml.jackson.dataformat:jackson-dataformat-xml:${getProperty('jackson.version')}"
+	javaClientCompile "com.fasterxml.jackson.core:jackson-annotations:${getProperty('jackson.version')}"
+	javaClientCompile 'io.swagger:swagger-annotations:1.5.12'
+	runtime 'com.lmax:disruptor:3.3.6'
+	runtime 'com.h2database:h2'
+	runtime 'mysql:mysql-connector-java'
+	runtime 'postgresql:postgresql:9.1-901-1.jdbc4'
+	runtime 'org.springframework.boot:spring-boot-configuration-processor'
+	runtime 'org.slf4j:jul-to-slf4j'
+	runtime 'org.springframework.boot:spring-boot-devtools'
+	runtime 'org.springframework.boot:spring-boot-actuator-docs'
+	runtime 'org.springframework.cloud:spring-cloud-starter-bus-amqp'
+	runtime 'org.springframework.cloud:spring-cloud-starter-sleuth'
+	runtime 'org.webjars:hal-browser'
+	testCompile 'org.codehaus.groovy:groovy-all:2.4.9'
+	testCompile 'org.springframework.boot:spring-boot-starter-test'
+	testCompile 'org.springframework.security:spring-security-test'
+	testCompile 'org.spockframework:spock-spring'
+	testCompile "io.springfox:springfox-staticdocs:$springfoxVersion"
+	testCompile 'io.github.robwin:assertj-swagger:0.5.0'
+	testCompile 'com.mmnaseri.utils:spring-data-mock:1.1.4'
+	providedCompile 'javax.servlet:javax.servlet-api:3.1.0'
+	providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
+}
+
+configurations {
+	testRuntime.exclude group: 'io.pivotal.spring.cloud', module: 'spring-cloud-services-starter-config-client'
+	testRuntime.exclude group: 'io.pivotal.spring.cloud', module: 'spring-cloud-services-starter-service-registry'
+	
+	all {
+		resolutionStrategy {
+			cacheDynamicVersionsFor 5, 'minutes'
+			cacheChangingModulesFor 5, 'minutes'
+			
+			exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+			
+			eachDependency { dependency ->
+				def groupId = dependency.requested.group
+				def artifactId = dependency.requested.name
+				def version = dependency.requested.version
+	
+				if ((groupId == 'commons-logging') && (artifactId == 'commons-logging')) {
+					// prefer 'jcl-over-slf4j' over commons-logging
+					dependency.useTarget group: 'org.slf4j', name: 'jcl-over-slf4j', version: property('slf4j.version')
+				}
+	
+				if ((groupId == 'javax.servlet') && (artifactId == 'javax.servlet-api') && (version != '3.1.0')) {
+					dependency.useTarget 'javax.servlet:javax.servlet-api:3.1.0'
+				}
+			}
+		}
+	}
+}
+
+// Configure javadoc tasks to generate offline links
+tasks.withType(Javadoc) { javadocTask ->
+	javadocTask.options.linksOffline getProperty('javadoc.url.java'), getProperty('javadoc.url.java')
+	javadocTask.options.linksOffline getProperty('javadoc.url.spring'), getProperty('javadoc.url.spring')
+	javadocTask.options.linksOffline getProperty('javadoc.url.spring-ws'), getProperty('javadoc.url.spring-ws')
+	javadocTask.options.linksOffline getProperty('javadoc.url.spring-security'), getProperty('javadoc.url.spring-security')
+	javadocTask.options.linksOffline getProperty('javadoc.url.dozer'), getProperty('javadoc.url.dozer')
+}
+
+eclipse {
+	wtp {		
+		component {
+			contextPath = "$project.name/v1"
+		}
+	}
+}
+
+eclipseWtpFacet.enabled = false
+
+task copyGeneratedApiDocs(type: Copy, description: 'Copies the generated API documents into /api-docs') {
+	into "$projectDir/api-docs"
+	from "${ -> swaggerDocumentation.apiTargetDir}"
+}
+
+afterEvaluate {
+	copyApiDocs.finalizedBy copyGeneratedApiDocs
+}
+
+task fixManifest(type: Copy) {
+	from project.projectDir
+	into project.projectDir
+	include 'manifest.yml.template'
+	filter(org.apache.tools.ant.filters.ReplaceTokens, tokens: [BUILD_VERSION: project.version])
+	rename('manifest.yml.template', 'manifest.yml')
+}
+
+build.dependsOn fixManifest
