@@ -1,0 +1,80 @@
+node('linux') {
+    def appName = 'entitlementsrs'	    // PCF App Name
+    def pcfApiUrl = 'https://api.system.nprd-pcf..net'
+    def pcfOrgName = '1161-0000-4999-Commercial'		    // PCF Target Org Name
+    def pcfSpaceName = 'DEV'		    // PCF Target Space Name 	
+    def buildVersion = "1.0.1.${env.BUILD_NUMBER}"
+    def artifactoryPublishRepo = 'commercial-it-java-dev-local'
+    def sonarHostUrl = "${sonar_host_url}"
+    def sonarLogin = "${sonar_login}"
+    
+    dir('entitlements-rs') {
+			try {
+        stage 'Checkout'
+    
+            git url: 'https://github.net/xxxx/xxxxx-rs.git'
+
+        stage 'Build'
+       
+            def jdkHome = tool 'jdk1.8'
+    
+            withEnv(["JAVA_HOME=${jdkHome}", "BUILD_VERSION=${buildVersion}"]) {
+                  sh "./gradlew clean assemble"
+            }
+						
+						stage 'Run Tests'
+						
+							withEnv(["JAVA_HOME=${jdkHome}", "BUILD_VERSION=${buildVersion}"]) {
+								try {
+									sh "./gradlew build"
+								}
+								finally {
+									step([$class: 'JUnitResultArchiver', testResults: 'target/test-results/**/*.xml'])
+								}
+							}
+        
+        stage 'Sonar Scan'
+        
+            withEnv(["JAVA_HOME=${jdkHome}", "BUILD_VERSION=${buildVersion}", "GRADLE_OPTS=-Dsonar.host.url=${sonarHostUrl} -Dsonar.login=${sonarLogin}"]) {
+                sh "./gradlew sonarqube"
+    	    }
+   
+        stage 'Publish to Artifactory'
+				
+					withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'devopspipeline_artifactory_credential_id', usernameVariable: 'artifactoryUsername', passwordVariable: 'artifactoryPassword']]) {
+//				withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'devopspipeline', usernameVariable: 'artifactoryUsername', passwordVariable: 'artifactoryPassword']]) {
+					withEnv(["JAVA_HOME=${jdkHome}", "BUILD_VERSION=${buildVersion}", "GRADLE_OPTS=-Dartifactory.publish.repo.user=${env.artifactoryUsername} -Dartifactory.publish.repo=${artifactoryPublishRepo} -Dartifactory.publish.repo.pwd=${env.artifactoryPassword}"]) {
+						sh "./gradlew artifactoryPublish"
+					}
+				}
+
+        stage 'Deploy to PCF'
+    
+            withEnv(["JAVA_HOME=${jdkHome}", "BUILD_VERSION=${buildVersion}"]) {
+							withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'fb1ae9f8-1e7f-4f13-95cc-7910b1651944', usernameVariable: 'pcfUsername', passwordVariable: 'pcfPassword']]) {
+  							try {
+                  sh "cf login -a ${pcfApiUrl} -u ${env.pcfUsername} -p ${env.pcfPassword} -o ${pcfOrgName} -s ${pcfSpaceName}"
+                  sh "cf push -f manifest.yml"
+                  sh "cf logs $appName --recent"
+                  sh "cf app $appName"
+  							}
+  							finally {
+                  sh "cf logout"
+  							}
+              }
+						}
+						
+				stage 'Notify'
+						
+						notify 'Success', 'was successful', buildVersion, false
+			}
+			catch(err) {
+				notify 'Failure', 'failed', buildVersion, true
+				throw err
+			}
+    }
+}
+
+def notify(status, bodyMessage, buildVersion, attachBuildLog) {
+	emailext subject: "${env.JOB_NAME} $buildVersion Build $status", body: "The ${env.JOB_NAME} $buildVersion build $bodyMessage", to: 'Eric.Deandrea@aig.com', mimeType: 'text/html', attachLog: attachBuildLog
+}
